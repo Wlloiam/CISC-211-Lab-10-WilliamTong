@@ -14,7 +14,8 @@
 .align
 # space allocated for cipherText: 200 bytes, prefilled with 0x2A */
 cipherText: .space 200,0x2A  
- 
+ testText1: .asciz "ABCXYZ"
+ testText2: .asciz "BCXYZA"
 # Tell the assembler that what follows is in instruction memory    
 .text
 .align
@@ -65,7 +66,52 @@ asmEncrypt:
     push {r4-r11,LR}
     
     /* YOUR asmEncrypt CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
+    mov r11,0x00
+    mov r6,r1
+    cmp r6,0
+    mov r4,0
+    ldr r10,= cipherText
+    beq done
     
+    loop:
+    mov r5,r0
+    ldrb r5,[r5,r4]
+    
+    cmp r5,0x00
+    beq reach_null
+    cmp r5,'A'
+    blt other_char
+    cmp r5,'Z'
+    ble Upper_enc
+    
+    cmp r5,'a'
+    blt other_char
+    cmp r5,'z'
+    ble Lower_enc
+    
+    Upper_enc:
+    add r5,r5,r6
+    cmp r5,'Z'
+    subgt r5,r5,26
+    b store
+    
+    Lower_enc:
+    add r5,r5,r6
+    cmp r5,'z'
+    subgt r5,r5,26
+    b store
+    
+    other_char:
+    
+    store:
+    strb r5,[r10,r4]
+    add r4,r4,1
+    b loop
+    
+    reach_null:
+    strb r11,[r10,r4]
+    ldr	 r0,=cipherText
+    done:
     /* YOUR asmEncrypt CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
 
     # restore the caller's registers, as required by the ARM calling convention
