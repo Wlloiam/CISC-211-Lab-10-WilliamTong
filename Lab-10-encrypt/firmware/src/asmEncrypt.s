@@ -66,51 +66,58 @@ asmEncrypt:
     push {r4-r11,LR}
     
     /* YOUR asmEncrypt CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
-    mov r11,0x00
-    mov r6,r1
-    cmp r6,0
-    mov r4,0
-    ldr r10,= cipherText
-    beq done
     
+    mov r11,0x00	    /*storing the null point value in r11.This is for checking the string reach the nul point or not*/
+    mov r6,r1		    /*storing the input key value in r6 */
+    cmp r6,0		    /*comparing the key value with 0. If 0, the output does not change. */
+    beq done		    /*If the input equals to zero, the output remain the same, and does not change anything*/
+    mov r4,0		    /*storing the 0 in r4 for the index*/
+    ldr r10,= cipherText    /*storing the address of cipherText in  r10*/		    
+    /*If the input key does not equal 0, we will encrypt the input message. This is the beginng of the loop for the encrypting message
+     This loop will perform until the nul point is reached in the string*/
     loop:
-    mov r5,r0
-    ldrb r5,[r5,r4]
+    mov r5,r0		    /*storing input text r0 in r5 */
+    ldrb r5,[r5,r4]	    /*storing a byte from memory location of [r5+r4] in r5*/
     
-    cmp r5,0x00
-    beq reach_null
-    cmp r5,'A'
-    blt other_char
-    cmp r5,'Z'
-    ble Upper_enc
+    cmp r5,0x00		    /*compare a byte located r5 with 0, which is nul value*/
+    beq reach_null	    /*If r5 equals to 0, the loop will stop and direct to the reach_null branch*/
+    cmp r5,'A'		    /*comapre the r5 with ASCII code value of A,which is 0x41*/
+    blt other_char	    /*If the value in r5 is lower than 0x41, it means it is not in the range of A-Z, a-z, so will direct to other_char branch*/
+    cmp r5,'Z'		    /*If the r5 is greater than or equal, will compare r5 with the ASCII code value of Z again*/
+    ble Upper_enc	    /*If the r5 is lower than or equal to r5, it is in range of A-Z, so will direct to the Upper_enc branch*/
+    /*If the r5 value is greater than the value of Z, check the r5 value is within the range of a-z or not, if not direct to the other_char branch*/
+    cmp r5,'a'		    /*compare the r5 value with the ASCII code vaule of a, which is 0x61*/
+    blt other_char	    /*If the r5 value is lower than the value of a, will direct to the other_char branch*/
+    cmp r5,'z'		    /*If the r5 value is not lower than the value of a, compare the ASCII code value of z to check r5 is within the range of a-z or not*/
+    ble Lower_enc	    /*If the r5 value is lower than or equal to the value of z, it is within the range of a-z, and will direct to the Lower_enc branch*/
+    b other_char	    /*If the r5 value is greater than the value of z, will direct to the other_char branch*/
     
-    cmp r5,'a'
-    blt other_char
-    cmp r5,'z'
-    ble Lower_enc
-    
+    /**This is the Upper_enc branch. This is for encrypting the text for the upper case character A-Z**/
     Upper_enc:
-    add r5,r5,r6
-    cmp r5,'Z'
-    subgt r5,r5,26
-    b store
+    add r5,r5,r6	    /*adding the key value, which is located in r6, to the value in r5, and store the result in r5*/
+    cmp r5,'Z'		    /*comparing the result value in r5 with ascii code value of Z*/
+    subgt r5,r5,26	    /*If the result value in r5 is greater than the value of Z, substract 26 from r5 and store it in r5*/
+    b store		    /*directing to the store branch to store the encrypted char*/
     
+    /**This is the Lower_enc branch. This is for encrypting the text for the lower case character a-z**/
     Lower_enc:
-    add r5,r5,r6
-    cmp r5,'z'
-    subgt r5,r5,26
-    b store
-    
+    add r5,r5,r6	    /*adding the key value, which is located in r6, to the value in r5, and store the result in r5*/
+    cmp r5,'z'		    /*comparing the result value in r5 with the ASCII code value of z*/
+    subgt r5,r5,26	    /*If the result value in r5 is greater than the value of z, substract 26 from r5 and store it in r5*/
+    b store		    /*directing to the store branch to store the encrypted char*/
+    /*Since the other_char, which is not A-Z, a-z, are not required to encrypt, it will just copy the value*/
     other_char:
-    
+    /**This is the sotre branch for storing the character in meomry location of the cipherText which is [r10+r4], byte by byte*/
     store:
-    strb r5,[r10,r4]
-    add r4,r4,1
-    b loop
-    
+    strb r5,[r10,r4]	    /*storing encrypted char which is in r5 in the memory location of cipherText,which is [r10+r4] by byte by byte*/
+    add r4,r4,1		    /*adding 1 to r4, to increment the memory location of cipherText*/
+    b loop		    /*directing to the loop brach*/
+    /*This is the reach_null branch, which is for when the input r5 reachs the null point in input string. This will store the null point value in last address in
+     memory location of CipherText, which is [r10+r4]*/
     reach_null:
-    strb r11,[r10,r4]
-    ldr	 r0,=cipherText
+    strb r11,[r10,r4]	    /*storing the ASCII code value of null point char in memory location of of cipherText,which is [r10+r4]*/
+    ldr	 r0,=cipherText	    /*store the cipherText value into r0*/
+    /*This is the end of the asmEncrypt function*/
     done:
     /* YOUR asmEncrypt CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
 
